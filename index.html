@@ -1,0 +1,277 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رحلة التحدي | كثيرات الحدود</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;padding:20px 14px;
+ font-family:Arial,sans-serif;color:white;text-align:center;
+ background:linear-gradient(140deg,#101329,#24265c,#101329);
+}
+.container{
+ max-width:600px;margin:25px auto;padding:25px 19px;
+ border:1px solid #ffffff30;border-radius:25px;
+ background:#ffffff12;box-shadow:0 15px 40px #0005;
+}
+h1{color:#f5d78e;font-size:30px}
+h2{color:#f5d78e}
+p{line-height:1.9;color:#e6e6f5}
+button{
+ width:100%;padding:15px;margin:9px 0;
+ border:0;border-radius:13px;background:#7771db;
+ color:white;font-size:17px;font-weight:bold;cursor:pointer;
+}
+button:disabled{cursor:default;opacity:1}
+button:hover:not(:disabled){background:#9993f2}
+.option{background:#ffffff18;border:1px solid #ffffff35}
+.option.correct{background:#176d4c}
+.option.wrong{background:#9b343e}
+#feedback{font-size:17px;line-height:1.8;min-height:55px}
+#progress{color:#f5d78e;font-weight:bold}
+#bar{height:9px;background:#ffffff25;border-radius:10px;margin:15px 0;overflow:hidden}
+#fill{height:100%;width:0;background:#f5d78e;transition:.3s}
+.score{font-size:24px;color:#f5d78e}
+.hidden{display:none}
+.small{font-size:14px;color:#c5c5dc}
+</style>
+</head>
+<body>
+
+<div class="container" id="home">
+ <div style="font-size:60px">🧮✨</div>
+ <h1>رحلة التحدي</h1>
+ <h2>في عالم كثيرات الحدود</h2>
+ <p>هل أنت مستعدة لاختبار مهاراتك الرياضية؟</p>
+ <p>٢٠ سؤالًا من الفصل الثالث<br>كثيرات الحدود ودوالها</p>
+ <p class="small">رياضيات ثاني ثانوي | الفصل الدراسي الأول</p>
+ <button onclick="startGame()">ابدئي التحدي 🚀</button>
+</div>
+
+<div class="container hidden" id="game">
+ <div id="progress">السؤال ١ من ٢٠</div>
+ <div id="bar"><div id="fill"></div></div>
+ <p id="lesson" class="small"></p>
+ <h2 id="question"></h2>
+ <div id="options"></div>
+ <div id="feedback"></div>
+ <button id="next" class="hidden" onclick="nextQuestion()">السؤال التالي ←</button>
+ <p class="score">⭐ النقاط: <span id="score">٠</span></p>
+</div>
+
+<div class="container hidden" id="result">
+ <div style="font-size:60px">🏆</div>
+ <h1>انتهى التحدي!</h1>
+ <p>أحسنتِ! لقد أكملتِ جميع الأسئلة</p>
+ <div class="score" id="finalScore"></div>
+ <h2 id="message"></h2>
+ <button onclick="startGame()">إعادة اللعب 🔄</button>
+</div>
+
+<script>
+const questions=[
+{
+l:"الأعداد المركبة",
+q:"ما قيمة i² في مجموعة الأعداد المركبة؟",
+a:["١","-١","٠","i"],
+c:1,e:"حسب تعريف الوحدة التخيلية فإن i² = -١."
+},
+{
+l:"الأعداد المركبة",
+q:"ما ناتج (٣ + ٢i) + (١ - ٥i)؟",
+a:["٤ - ٣i","٤ + ٧i","٢ + ٣i","٤ + ٣i"],
+c:0,e:"نجمع الأجزاء الحقيقية معًا والتخيلية معًا."
+},
+{
+l:"القانون العام والمميز",
+q:"ما قيمة المميز للمعادلة x² - ٤x + ٤ = ٠؟",
+a:["١٦","٨","٠","-٤"],
+c:2,e:"المميز = b² - 4ac = ١٦ - ١٦ = ٠."
+},
+{
+l:"القانون العام والمميز",
+q:"إذا كان المميز سالبًا في معادلة تربيعية، فإن المعادلة لها:",
+a:["حلّان حقيقيان مختلفان","حل حقيقي واحد","لا حلول حقيقية","ثلاثة حلول"],
+c:2,e:"المميز السالب يعني عدم وجود جذور حقيقية."
+},
+{
+l:"العمليات على كثيرات الحدود",
+q:"ما ناتج (٢x² + ٣x) + (x² - ٥x)؟",
+a:["٣x² - ٢x","٣x² + ٨x","x² - ٢x","٣x² + ٢x"],
+c:0,e:"نجمع الحدود المتشابهة: ٢x² + x² = ٣x² و٣x - ٥x = -٢x."
+},
+{
+l:"العمليات على كثيرات الحدود",
+q:"ما ناتج (x + ٢)(x + ٣)؟",
+a:["x² + ٥x + ٦","x² + ٦","x² + x + ٦","x² + ٥x - ٦"],
+c:0,e:"نضرب كل حد في القوس الأول بكل حد في القوس الثاني."
+},
+{
+l:"العمليات على كثيرات الحدود",
+q:"ما درجة كثيرة الحدود ٥x⁴ - ٣x² + ٧؟",
+a:["٢","٣","٤","٧"],
+c:2,e:"الدرجة هي أكبر أس للمتغير، وهو ٤."
+},
+{
+l:"قسمة كثيرات الحدود",
+q:"ما ناتج قسمة (x² + ٥x + ٦) على (x + ٢)؟",
+a:["x + ٢","x + ٣","x - ٣","x² + ٣"],
+c:1,e:"بتحليل البسط: (x + ٢)(x + ٣)، ثم الاختصار."
+},
+{
+l:"قسمة كثيرات الحدود",
+q:"ما ناتج قسمة (x² - ١) على (x - ١)؟",
+a:["x - ١","x + ١","x² + ١","x + ٢"],
+c:1,e:"فرق بين مربعين: x² - ١ = (x - ١)(x + ١)."
+},
+{
+l:"دوال كثيرات الحدود",
+q:"ما درجة الدالة f(x) = ٢x³ - ٤x + ١؟",
+a:["١","٢","٣","٤"],
+c:2,e:"أكبر أس للمتغير x هو ٣."
+},
+{
+l:"دوال كثيرات الحدود",
+q:"ما أصفار الدالة f(x) = x² - ٩؟",
+a:["٣ فقط","-٣ فقط","٣ و -٣","٩ و -٩"],
+c:2,e:"نحل x² - ٩ = ٠، فنحصل على x = ٣ أو x = -٣."
+},
+{
+l:"حل معادلات كثيرات الحدود",
+q:"ما حلول المعادلة x³ - ٤x = ٠؟",
+a:["٢ و -٢ و ٠","٤ و ٠","٢ و ٤","-٤ و ٤"],
+c:0,e:"نحلل: x(x - ٢)(x + ٢) = ٠."
+},
+{
+l:"حل معادلات كثيرات الحدود",
+q:"ما حلّا المعادلة x² - ٥x + ٦ = ٠؟",
+a:["١ و ٦","٢ و ٣","-٢ و -٣","١ و ٥"],
+c:1,e:"نحللها إلى (x - ٢)(x - ٣) = ٠."
+},
+{
+l:"حل معادلات كثيرات الحدود",
+q:"ما الحل الحقيقي للمعادلة x³ = ٨؟",
+a:["٢","٤","-٢","٨"],
+c:0,e:"الجذر التكعيبي للعدد ٨ يساوي ٢."
+},
+{
+l:"نظريتا الباقي والعوامل",
+q:"إذا كانت f(x) = x² + ٢x + ١، فما قيمة f(1)؟",
+a:["٢","٣","٤","٥"],
+c:2,e:"نعوض عن x بالعدد ١: ١ + ٢ + ١ = ٤."
+},
+{
+l:"نظريتا الباقي والعوامل",
+q:"إذا كان f(2) = ٠، فماذا نستنتج؟",
+a:["x + ٢ عامل","x - ٢ عامل","x عامل","x + ١ عامل"],
+c:1,e:"حسب نظرية العامل، إذا كان f(2) = ٠ فإن (x - ٢) عامل."
+},
+{
+l:"نظريتا الباقي والعوامل",
+q:"إذا كانت f(3) = ٥، فما باقي قسمة f(x) على (x - ٣)؟",
+a:["٣","٠","٥","٨"],
+c:2,e:"حسب نظرية الباقي، الباقي يساوي f(3) أي ٥."
+},
+{
+l:"الجذور والأصفار",
+q:"ما جذرا كثيرة الحدود (x - ١)(x + ٤)؟",
+a:["١ و ٤","-١ و ٤","١ و -٤","-١ و -٤"],
+c:2,e:"نجعل كل عامل يساوي صفرًا، فنحصل على ١ و -٤."
+},
+{
+l:"الجذور والأصفار",
+q:"ما تحليل x² - ٩؟",
+a:["(x - ٣)(x + ٣)","(x - ٩)(x + ١)","(x - ٣)²","(x + ٩)(x - ١)"],
+c:0,e:"هذا فرق بين مربعين: x² - ٣²."
+},
+{
+l:"الجذور والأصفار",
+q:"في الدالة f(x) = (x - ٢)²(x + ١)، ما تعدد الجذر ٢؟",
+a:["١","٢","٣","٤"],
+c:1,e:"العامل (x - ٢) مرفوع للأس ٢، لذا تعدد الجذر ٢."
+}
+];
+
+let current=0,score=0,answered=false,gameQuestions=[];
+
+function ar(n){return n.toLocaleString("ar-SA")}
+
+function startGame(){
+ current=0;score=0;
+ gameQuestions=[...questions].sort(()=>Math.random()-.5);
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("result").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ showQuestion();
+}
+
+function showQuestion(){
+ answered=false;
+ const q=gameQuestions[current];
+ document.getElementById("progress").textContent=
+ "السؤال "+ar(current+1)+" من ٢٠";
+ document.getElementById("fill").style.width=
+ ((current+1)/20*100)+"%";
+ document.getElementById("lesson").textContent="📚 "+q.l;
+ document.getElementById("question").textContent=q.q;
+ document.getElementById("score").textContent=ar(score);
+ document.getElementById("feedback").textContent="";
+ document.getElementById("next").classList.add("hidden");
+ const box=document.getElementById("options");
+ box.innerHTML="";
+ q.a.forEach((answer,i)=>{
+  const b=document.createElement("button");
+  b.className="option";
+  b.textContent=answer;
+  b.onclick=()=>choose(i,b);
+  box.appendChild(b);
+ });
+}
+
+function choose(i,button){
+ if(answered)return;
+ answered=true;
+ const q=gameQuestions[current];
+ const buttons=document.querySelectorAll(".option");
+ buttons.forEach((b,index)=>{
+  b.disabled=true;
+  if(index===q.c)b.classList.add("correct");
+ });
+ if(i===q.c){
+  score++;
+  document.getElementById("feedback").textContent="🎉 إجابة صحيحة! "+q.e;
+ }else{
+  button.classList.add("wrong");
+  document.getElementById("feedback").textContent="💡 ليست الإجابة الصحيحة. "+q.e;
+ }
+ document.getElementById("score").textContent=ar(score);
+ const next=document.getElementById("next");
+ next.textContent=current===19?"عرض النتيجة 🏆":"السؤال التالي ←";
+ next.classList.remove("hidden");
+}
+
+function nextQuestion(){
+ current++;
+ if(current<20)showQuestion();
+ else showResult();
+}
+
+function showResult(){
+ document.getElementById("game").classList.add("hidden");
+ document.getElementById("result").classList.remove("hidden");
+ document.getElementById("finalScore").textContent=
+ ar(score)+" من ٢٠";
+ let msg="";
+ if(score===20)msg="مذهلة! علامة كاملة ⭐";
+ else if(score>=16)msg="ممتازة! مستواك رائع 🌟";
+ else if(score>=12)msg="أحسنتِ! واصلي التقدم 💜";
+ else if(score>=8)msg="بداية جميلة، راجعي وحاولي مجددًا 🌷";
+ else msg="لا تستسلمي! كل محاولة تعلمك شيئًا جديدًا 💪";
+ document.getElementById("message").textContent=msg;
+}
+</script>
+</body>
+</html>
